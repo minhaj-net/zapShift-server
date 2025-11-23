@@ -71,24 +71,30 @@ async function run() {
     //peyment getway related APIs
     app.post("/create-checkout-session", async (req, res) => {
       const paymentInfo = req.body;
+      const amount = parseInt(paymentInfo.cost) * 100;
       const session = await stripe.checkout.sessions.create({
         line_items: [
           {
-            // Provide the exact Price ID (for example, price_1234) of the product you want to sell
             price_data: {
-              currency: "USD",
+              currency: "usd",
               product_data: {
                 name: paymentInfo.parcelName,
               },
-              unit_amount: 1500,
+              unit_amount: amount,
             },
             quantity: 1,
           },
         ],
         customer_email: paymentInfo.senderEmail,
         mode: "payment",
+        metadata: {
+          id: paymentInfo.id,
+        },
         success_url: `${process.env.SITE_PAYMENT_DOMAIN}/dashboard/payment-success`,
+        cancel_url: `${process.env.SITE_PAYMENT_DOMAIN}/dashboard/payment-cancelled`,
       });
+      console.log(session);
+      res.send({url:session.url})
     });
 
     // Send a ping to confirm a successful connection
